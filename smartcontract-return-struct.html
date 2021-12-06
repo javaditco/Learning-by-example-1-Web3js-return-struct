@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+</head>
+<body>
+    <h1>Web3 version</h1>
+    <div id="web3version"></div> 
+    <h1>net Type</h1>
+    <div id="netType"></div> 
+    <h1>Connection Status</h1>
+    <div id="connected"></div> 
+    <h1>Listening</h1>
+    <div id="isListening"></div> 
+    <h1>network Id</h1>
+    <div id="netId"></div> 
+    
+    
+</body>
+<script type="text/javascript" src="./dist/web3.min.js"></script>
+
+<script type="text/javascript">
+
+    var myAccountPass = "Account-Password"; // Following account password
+    var myAccount = 'Account Address'; // Your account addres that have a few ether.
+    var SmartContracat = 'Smart Contract Address'; // The contract address after its deploymet
+    var defaultBlock = "latest";
+
+
+
+
+
+    if (typeof web3 !== 'undefined') {
+        web3 = new Web3(web3.currentProvider);
+    } else {
+        var web3 = new Web3(new Web3.providers.WebsocketProvider("ws://127.0.0.1:8546"));
+    }
+
+
+
+    web3.eth.defaultAccount = myAccount;  // take from truffle console
+    web3.shh.defaultAccount = myAccount;
+    web3.eth.defaultBlock = defaultBlock;
+    web3.eth.transactionPollingTimeout = 60;
+
+
+
+    var version = Web3.version;
+    document.getElementById('web3version').innerHTML = version;
+
+
+    web3.eth.net.getNetworkType().then(function(netType){ 
+        document.getElementById('netType').innerHTML = netType;
+    });
+
+
+    web3.eth.net.isListening().then(function(Listening){ 
+        document.getElementById('isListening').innerHTML = Listening;
+        document.getElementById('connected').innerHTML = Listening;
+    });
+
+
+    web3.eth.net.getId().then(function(netId){ 
+        document.getElementById('netId').innerHTML = netId;
+    });
+
+
+
+    CntractABI = [{"inputs":[],"name":"testGetFunc","outputs":[{"components":[{"internalType":"uint256[]","name":"var1","type":"uint256[]"},{"internalType":"string[]","name":"var2","type":"string[]"},{"internalType":"string","name":"message","type":"string"}],"internalType":"struct testContract.funcResultType","name":"","type":"tuple"}],"stateMutability":"view","type":"function"},{"inputs":[],"name":"testResetFunc","outputs":[],"stateMutability":"payable","type":"function"},{"inputs":[{"internalType":"string","name":"inputVar","type":"string"}],"name":"testSetFunc","outputs":[],"stateMutability":"payable","type":"function"}];
+
+
+    var GasPrice1 = 0;
+    web3.eth.getGasPrice().then(function(GasPrice){
+        
+        GasPrice1 = GasPrice;
+        console.log(GasPrice);
+
+
+        var Contract1 = new web3.eth.Contract(CntractABI, SmartContracat, {
+            from: myAccount, // default from address
+            gasPrice: GasPrice1 + 1, // default gas price in wei
+        });
+
+        Contract1.options.gasPrice = GasPrice1 + 1;
+        Contract1.transactionConfirmationBlocks = 1;
+        Contract1.transactionPollingTimeout = 60;
+
+
+        var estimatedGas = null;
+        Contract1.methods.testSetFunc("test string").estimateGas({
+            maxFeePerGas: 20
+        }).then(function(gasAmount){
+            estimatedGas = gasAmount;
+            console.log(gasAmount);
+            var nonceVal = 0
+            web3.eth.getTransactionCount(myAccount).then(function(res){
+                console.log(res);
+                nonceVal = res;
+
+                Contract1.methods.testSetFunc("test string")
+                .send({
+                    from: myAccount,
+                    gas: estimatedGas + 1,
+                    gasPrice: GasPrice1 + 1,
+                    nonce: nonceVal
+                }).on('receipt', function(receipt){
+                    console.log(receipt)
+                }).then(function(result){
+                    console.log(result)
+                });
+
+            });
+
+        }).catch(console.log());
+        
+
+    });
+    
+    
+
+    var Contract1 = new web3.eth.Contract(CntractABI, SmartContracat, {
+        from: myAccount, // default from address
+    });
+
+
+
+    Contract1.methods.testGetFunc()
+    .call().then(function(result){
+        console.log(result)
+    });
+
+
+
+
+
+    
+
+</script>
+</html>
+
