@@ -94,22 +94,25 @@
             estimatedGas = gasAmount;
             console.log(gasAmount);
             var nonceVal = 0
-            web3.eth.getTransactionCount(myAccount).then(function(res){
-                console.log(res);
-                nonceVal = res;
+            
+            web3.eth.personal.unlockAccount(myAccount, myAccountPass, 600).then(function(res){
+                web3.eth.getTransactionCount(myAccount).then(function(res){
+                    console.log(res);
+                    nonceVal = res;
 
-                Contract1.methods.testSetFunc("test string")
-                .send({
-                    from: myAccount,
-                    gas: estimatedGas + 1,
-                    gasPrice: GasPrice1 + 1,
-                    nonce: nonceVal
-                }).on('receipt', function(receipt){
-                    console.log(receipt)
-                }).then(function(result){
-                    console.log(result)
+                    Contract1.methods.testSetFunc("test string")
+                    .send({
+                        from: myAccount,
+                        gas: estimatedGas + 1,
+                        gasPrice: GasPrice1 + 1,
+                        nonce: nonceVal
+                    }).on('receipt', function(receipt){
+                        console.log(receipt)
+                    }).then(function(result){
+                        console.log(result)
+                    });
+
                 });
-
             });
 
         }).catch(console.log());
